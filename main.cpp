@@ -33,8 +33,8 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
 
   // ----------- Time Solver ---------------
   const int steps_pday = 10;
-  const int lifespan = 5000;
-  const int simlength = 2500;
+  const int lifespan = 1000;
+  const int simlength = 500;
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
   tsolver->print_timeinfo();
@@ -42,7 +42,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
 
   // ----------- Wall Object ---------------
   const double dP = 1.0;
-  const double dQ = 1.2;
+  const double dQ = 1.3;
   Model_wall * wall = new Model_wall(pi, dP, dQ, tsolver->get_num_t(),
       tsolver->get_num_DL(), tsolver->get_dt(), K_c1, K_c2, K_m1, K_m2, G_ch, G_mh, G_et, G_ez);
 
@@ -88,10 +88,10 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   double Lm_n;
   double C_t, dC_t, T_act, dT_act;
   double Fa, dFa_da;
-  double * h_h = new double;
-  double * total_M = new double;
-  double * tau_w = new double;
-  double * radius_t = new double;
+  double h_h[tsolver->get_num_t()];
+  double total_M[tsolver->get_num_t()];
+  double tau_w[tsolver->get_num_t()];
+  double radius_t[tsolver->get_num_t()];
   h_h[0] = 0.0176066;
   total_M[0] = 0.0184869;
   tau_w[0] = 56.9;
@@ -287,7 +287,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
     total_M[n_t] = M_c + M_e + M_m;
     h_h[n_t] = total_M[n_t] / (wall->get_rho_s() * L_t * L_z);
     tau_w[n_t] = 4.0 * wall->get_mu() * Q / (pi*a_t*a_t*a_t);
-    radius_t[n_t] = wall->get_Da(n_t);
+    radius_t[n_t] = a_t;
 
     //outfile<<a_t<<'\t'<<h_h[n_t]<<'\t'<<M_c<<'\t'<<M_m<<'\t'<<M_e<<'\t'<<total_M<<'\t';
     //outfile<<wall->get_Dalpha(n_t);
@@ -307,8 +307,48 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   }
 
   //outfile.close();
+  double new_a_h = radius_t[tsolver->get_num_t()-1];
+  double new_h_h = h_h[tsolver->get_num_t()-1];
+  double new_tau_w = tau_w[tsolver->get_num_t()-1];
+  double new_M = total_M[tsolver->get_num_t()-1];
+  const double tol = 1e-6;
+  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
+  { 
+      double t = n_t * tsolver->get_dt();
+      if( (abs(radius_t[n_t] - new_a_h) / new_a_h < tol) && t > 2)
+      {
+          cout << "Time reaching homeostatic inner radius = " << t << endl;
+          break;
+      }
+  }
+  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
+  {
+      double t = n_t * tsolver->get_dt();
+      if( (abs(h_h[n_t] - new_h_h) / new_h_h < tol) && t > 2)
+      {
+          cout << "Time reaching homeostatic thickness is " << t << endl;
+          break;
+      }
+  }
+  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
+  {
+      double t = n_t * tsolver->get_dt(); 
+      if( (abs(tau_w[n_t] - new_tau_w) / new_tau_w < tol) && t > 2)
+      {
+          cout << "Time reaching homeostatic WSS is " << t << endl;
+          break;
+      }
+  }
+  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
+  {
+      double t = n_t * tsolver->get_dt();
+      if( (abs(total_M[n_t] - new_M) / new_M < tol) && t > 2)
+      {
+          cout << "Time reaching homeostatic total mass is " << t << endl;
+          break;
+      }
+  }
+
   delete wall; delete tsolver;
-
 }
-
 // EOF

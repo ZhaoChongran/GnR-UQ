@@ -99,13 +99,13 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   // --------------------------------------
 
   // ----- Prepare file for recording -----
-  ofstream outfile( "results", ofstream::out | ofstream::trunc );
+  //ofstream outfile( "results", ofstream::out | ofstream::trunc );
 
-  if(!outfile)
-  {
-    cerr<<"Error: unable to open file to record results. \n";
-    exit(EXIT_FAILURE);
-  }
+  //if(!outfile)
+  //{
+    //cerr<<"Error: unable to open file to record results. \n";
+    //exit(EXIT_FAILURE);
+  //}
 
   // --------------------------------------
   for( int n_t = 1; n_t < tsolver->get_num_t(); ++n_t )
@@ -128,7 +128,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
 
     tn0 = SYS_T::get_tn0(n_t, tsolver->get_num_DL()); 
 
-    outfile<<t<<'\t'<<P<<'\t'<<Q<<'\t';
+    //outfile<<t<<'\t'<<P<<'\t'<<Q<<'\t';
 
     while( (tol_m > Max_error_m) && (num_it1 < Max_it) )
     {
@@ -288,10 +288,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
     h_h[n_t] = total_M[n_t] / (wall->get_rho_s() * L_t * L_z);
     tau_w[n_t] = 4.0 * wall->get_mu() * Q / (pi*a_t*a_t*a_t);
     radius_t[n_t] = wall->get_Da(n_t);
-    double tol_h = abs(h_h[n_t] - h_h[n_t-1])/h_h[n_t-1];
-    double tol_M = abs(total_M[n_t] - total_M[n_t-1]) / total_M[n_t-1];
-    double tol_tau_w = abs(tau_w[n_t] - tau_w[n_t-1]) / tau_w[n_t-1];
-    double tol_radius = abs(radius_t[n_t] - radius_t[n_t-1]) / radius_t[n_t-1];
+
     //outfile<<a_t<<'\t'<<h_h[n_t]<<'\t'<<M_c<<'\t'<<M_m<<'\t'<<M_e<<'\t'<<total_M<<'\t';
     //outfile<<wall->get_Dalpha(n_t);
     //outfile<<endl;
@@ -302,23 +299,14 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
       wall->update_DQ2_c(ii, L_t, L_z, tsolver->get_dt());
       wall->update_DQ2_m(ii, L_t, L_z, tsolver->get_dt());
     }
- 
-
-   
     //cout<<"Time t= "<<t<<'\t';
     //cout<<"num_it1 = "<<num_it1<<'\t'<<"tol_a = "<<tol_a<<'\t';
     //cout<<"L_t = "<<L_t<<'\t'<<"h_h = "<<h_h<<'\t';
     //cout<<"total_M = "<<total_M<<'\t';
-    //cout<<endl;
-    if (t > 2 && tol_h < 1e-7)
-    {
-        cout << "Time reach homeostasis = " << t << endl;
-        break;
-    }
+    //cout<<endl; 
   }
 
-  outfile.close();
- 
+  //outfile.close();
   delete wall; delete tsolver;
 
 }

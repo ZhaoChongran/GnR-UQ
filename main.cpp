@@ -32,9 +32,9 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   const double pi = atan(1) * 4;
 
   // ----------- Time Solver ---------------
-  const int steps_pday = 10;
+  const int steps_pday = 30;
   const int lifespan = 1000;
-  const int simlength = 500;
+  const int simlength = 400;
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
   tsolver->print_timeinfo();
@@ -317,7 +317,9 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
     double t = n_t * tsolver->get_dt();
     if( (abs(radius_t[n_t] - new_a_h) / new_a_h < tol) && t > 2)
     {
-      cout << "Time reaching homeostatic inner radius = " << t << endl;
+      cout << "Time reaching homeostatic inner radius is " << t << endl;
+      cout << "The relative error of inner radius now is " << abs(radius_t[n_t] - new_a_h) / new_a_h << endl;
+      cout << "The relative error of WSS now is " << abs(tau_w[n_t] - new_tau_w) / new_tau_w << endl;
       break;
     }
   }
@@ -336,6 +338,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
     if( (abs(tau_w[n_t] - new_tau_w) / new_tau_w < tol) && t > 2)
     {
       cout << "Time reaching homeostatic WSS is " << t << endl;
+      cout << "The relative error of WSS now is " << abs(tau_w[n_t] - new_tau_w) / new_tau_w << endl;
       break;
     }
   }

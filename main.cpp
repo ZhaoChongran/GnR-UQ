@@ -32,9 +32,9 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   const double pi = atan(1) * 4;
 
   // ----------- Time Solver ---------------
-  const int steps_pday = 30;
-  const int lifespan = 1000;
-  const int simlength = 400;
+  const int steps_pday = 20;
+  const int lifespan = 10000;
+  const int simlength = 1000;
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
   tsolver->print_timeinfo();
@@ -94,7 +94,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   double radius_t[tsolver->get_num_t()];
   h_h[0] = 0.0176066;
   total_M[0] = 0.0184869;
-  tau_w[0] = 56.9;
+  tau_w[0] = 50.6;
   radius_t[0] = 0.142;
   // --------------------------------------
 
@@ -312,6 +312,12 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   double new_tau_w = tau_w[tsolver->get_num_t()-1];
   double new_M = total_M[tsolver->get_num_t()-1];
   const double tol = 1e-6;
+  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
+  {
+    cout << "Time t = " << n_t * tsolver->get_dt() << '\t';
+    cout << "Rate of inner radius = " << abs(radius_t[n_t] - radius_t[0]) / radius_t[0] << '\t';
+    cout << "Rate of WSS = " << abs(tau_w[n_t] - tau_w[0]) / tau_w[0] << endl;
+  }
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   { 
     double t = n_t * tsolver->get_dt();

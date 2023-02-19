@@ -11,23 +11,23 @@
 #include "Time_solver.hpp"
 
 double test(const double &K_c1, const double &K_c2, const double &K_m1, const double &K_m2,
-          const double &G_ch, const double &G_mh, const double &G_et, const double &G_ez);
+    const double &G_ch, const double &G_mh, const double &G_et, const double &G_ez);
 
 int main()
 {
-    double K_c1 = 1.0;
-    double K_c2 = 1.0;
-    double K_m1 = 1.0;
-    double K_m2 = 1.0;
-    double G_ch = 1.07;
-    double G_mh = 1.25;
-    double G_et = 1.5;
-    double G_ez = 1.5;
-    test(K_c1, K_c2, K_m1, K_m2, G_ch, G_mh, G_et, G_ez);
+  double K_c1 = 1.0;
+  double K_c2 = 1.0;
+  double K_m1 = 1.0;
+  double K_m2 = 1.0;
+  double G_ch = 1.07;
+  double G_mh = 1.25;
+  double G_et = 1.5;
+  double G_ez = 1.5;
+  test(K_c1, K_c2, K_m1, K_m2, G_ch, G_mh, G_et, G_ez);
 }
 
 double test(const double &K_c1, const double &K_c2, const double &K_m1, const double &K_m2,
-          const double &G_ch, const double &G_mh, const double &G_et, const double &G_ez )
+    const double &G_ch, const double &G_mh, const double &G_et, const double &G_ez )
 {
   const double pi = atan(1) * 4;
 
@@ -47,14 +47,14 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
       tsolver->get_num_DL(), tsolver->get_dt(), K_c1, K_c2, K_m1, K_m2, G_ch, G_mh, G_et, G_ez);
 
   wall->print_fluid_properties();
-  
+
   wall->print_solid_properties();
 
   wall->check_initial_parameters();
-  
+
   const double alpha_ckh[4] = {0.0, 0.5*pi, 0.25*pi, 0.75*pi};
   wall->check_initial_angle(alpha_ckh);
-  
+
   wall->check_initial_stress();
   // ---------------------------------------
 
@@ -72,7 +72,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   double a_act_p  = wall->get_a_M();
   double da_act_p = 0.0;
   const double k_act = 1.0 / 20.0; 
-  
+
   double dwdLt_c, dwdLz_c, dwdLt_m, dwdLt_e;
   double ddwddLt_c, ddwddLt_m, ddwddLt_e;
   double M_ck[4] = {0.0, 0.0, 0.0, 0.0};
@@ -103,8 +103,8 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
 
   //if(!outfile)
   //{
-    //cerr<<"Error: unable to open file to record results. \n";
-    //exit(EXIT_FAILURE);
+  //cerr<<"Error: unable to open file to record results. \n";
+  //exit(EXIT_FAILURE);
   //}
 
   // --------------------------------------
@@ -314,39 +314,39 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   const double tol = 1e-6;
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   { 
-      double t = n_t * tsolver->get_dt();
-      if( (abs(radius_t[n_t] - new_a_h) / new_a_h < tol) && t > 2)
-      {
-          cout << "Time reaching homeostatic inner radius = " << t << endl;
-          break;
-      }
+    double t = n_t * tsolver->get_dt();
+    if( (abs(radius_t[n_t] - new_a_h) / new_a_h < tol) && t > 2)
+    {
+      cout << "Time reaching homeostatic inner radius = " << t << endl;
+      break;
+    }
   }
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   {
-      double t = n_t * tsolver->get_dt();
-      if( (abs(h_h[n_t] - new_h_h) / new_h_h < tol) && t > 2)
-      {
-          cout << "Time reaching homeostatic thickness is " << t << endl;
-          break;
-      }
+    double t = n_t * tsolver->get_dt();
+    if( (abs(h_h[n_t] - new_h_h) / new_h_h < tol) && t > 2)
+    {
+      cout << "Time reaching homeostatic thickness is " << t << endl;
+      break;
+    }
   }
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   {
-      double t = n_t * tsolver->get_dt(); 
-      if( (abs(tau_w[n_t] - new_tau_w) / new_tau_w < tol) && t > 2)
-      {
-          cout << "Time reaching homeostatic WSS is " << t << endl;
-          break;
-      }
+    double t = n_t * tsolver->get_dt(); 
+    if( (abs(tau_w[n_t] - new_tau_w) / new_tau_w < tol) && t > 2)
+    {
+      cout << "Time reaching homeostatic WSS is " << t << endl;
+      break;
+    }
   }
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   {
-      double t = n_t * tsolver->get_dt();
-      if( (abs(total_M[n_t] - new_M) / new_M < tol) && t > 2)
-      {
-          cout << "Time reaching homeostatic total mass is " << t << endl;
-          break;
-      }
+    double t = n_t * tsolver->get_dt();
+    if( (abs(total_M[n_t] - new_M) / new_M < tol) && t > 2)
+    {
+      cout << "Time reaching homeostatic total mass is " << t << endl;
+      break;
+    }
   }
 
   delete wall; delete tsolver;

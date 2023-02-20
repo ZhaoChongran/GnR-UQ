@@ -32,10 +32,10 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   const double pi = atan(1) * 4;
 
   // ----------- Time Solver ---------------
-  const int steps_pday = 50;
-  const int lifespan = 10000;
-  const int simlength = 3000;
-  const int ref_days = 1500; 
+  const int steps_pday = 10;
+  const int lifespan = 5000;
+  const int simlength = 1000;
+  const int ref_days = 300; 
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
   tsolver->print_timeinfo();
@@ -313,15 +313,14 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   double new_tau_w = tau_w[tsolver->get_num_t()-1];
   double new_M = total_M[tsolver->get_num_t()-1];
   const double tol_a_t = abs(radius_t[ref_days*steps_pday-1] - radius_t[0]) / radius_t[0];
-  cout << tol_a_t << endl;
   const double tol_h = abs(h_h[ref_days*steps_pday-1] - h_h[0]) / h_h[0];
   const double tol_M = abs(total_M[ref_days*steps_pday-1] - total_M[0]) / total_M[0];
   const double tol_tau_w = abs(tau_w[ref_days*steps_pday-1] - tau_w[0]) / tau_w[0];
 
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
-  { 
+  {
     double t = n_t * tsolver->get_dt();
-    if( (abs(radius_t[n_t] - new_a_h) / new_a_h < tol_a_t) && t > ref_days+10)
+    if( (abs(radius_t[n_t] / new_a_h - 1.0) <= tol_a_t) && t > ref_days)
     {
       cout << "Time reaching homeostatic inner radius is " << t << endl; 
       break;
@@ -330,7 +329,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   {
     double t = n_t * tsolver->get_dt();
-    if( (abs(h_h[n_t] - new_h_h) / new_h_h < tol_h) && t > ref_days+10)
+    if( (abs(h_h[n_t] / new_h_h - 1.0) <= tol_h) && t > ref_days)
     {
       cout << "Time reaching homeostatic thickness is " << t << endl;
       break;
@@ -339,7 +338,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   {
     double t = n_t * tsolver->get_dt(); 
-    if( (abs(tau_w[n_t] - new_tau_w) / new_tau_w < tol_tau_w) && t > ref_days+10)
+    if( (abs(tau_w[n_t] / new_tau_w - 1.0) <= tol_tau_w) && t > ref_days)
     {
       cout << "Time reaching homeostatic WSS is " << t << endl; 
       break;
@@ -348,7 +347,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   {
     double t = n_t * tsolver->get_dt();
-    if( (abs(total_M[n_t] - new_M) / new_M < tol_M) && t > ref_days+10)
+    if( (abs(total_M[n_t] / new_M - 1.0) <= tol_M) && t > ref_days)
     {
       cout << "Time reaching homeostatic total mass is " << t << endl;
       break;

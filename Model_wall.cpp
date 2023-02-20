@@ -291,15 +291,15 @@ void Model_wall::check_initial_parameters() const
 }
 
 
-double Model_wall::get_P(const double &time) const
+double Model_wall::get_P(const double &time, const double &ref_time) const
 {
-  return time>1000.0 ? P_h * delta_P : P_h;
+  return time>ref_time ? P_h * delta_P : P_h;
 }
 
 
-double Model_wall::get_Q(const double &time) const
+double Model_wall::get_Q(const double &time, const double &ref_time) const
 {
-  return time>1000.0 ? Q_h * delta_Q : Q_h;
+  return time>ref_time ? Q_h * delta_Q : Q_h;
 }
 
 

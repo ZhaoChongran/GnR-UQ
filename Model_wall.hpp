@@ -52,8 +52,8 @@ class Model_wall
     {return exp( -kq_c * s );}
 
     // get pressure & flow rate
-    double get_P(const double &time) const;
-    double get_Q(const double &time) const;
+    double get_P(const double &time, const double &ref_time) const;
+    double get_Q(const double &time, const double &ref_time) const;
     
 
     // predictor for solutions

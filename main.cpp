@@ -92,13 +92,10 @@ void test(const double * P_k, const double * P_G, const double * P_c )
   double Lm_n;
   double C_t, dC_t, T_act, dT_act;
   double Fa, dFa_da;
-  double h_h[tsolver->get_num_t()];
-  double total_M[tsolver->get_num_t()];
-  double tau_w[tsolver->get_num_t()];
+  // double h_h;
+  // double total_M;
+  // double tau_w;
   double radius_t[tsolver->get_num_t()];
-  h_h[0] = 0.0176066;
-  total_M[0] = 0.0184869;
-  tau_w[0] = 50.6;
   radius_t[0] = 0.142;
   // --------------------------------------
 
@@ -287,13 +284,13 @@ void test(const double * P_k, const double * P_G, const double * P_c )
 
     wall->set_Dalpha(n_t, L_t, L_z);
 
-    double M_e = wall->get_M_eh();
-    total_M[n_t] = M_c + M_e + M_m;
-    h_h[n_t] = total_M[n_t] / (wall->get_rho_s() * L_t * L_z);
-    tau_w[n_t] = 4.0 * wall->get_mu() * Q / (pi*a_t*a_t*a_t);
+    // double M_e = wall->get_M_eh();
+    // total_M = M_c + M_e + M_m;
+    // h_h = total_M / (wall->get_rho_s() * L_t * L_z);
+    // tau_w = 4.0 * wall->get_mu() * Q / (pi*a_t*a_t*a_t);
     radius_t[n_t] = a_t;
 
-    //outfile<<a_t<<'\t'<<h_h[n_t]<<'\t'<<M_c<<'\t'<<M_m<<'\t'<<M_e<<'\t'<<total_M<<'\t';
+    //outfile<<a_t<<'\t'<<h_h<<'\t'<<M_c<<'\t'<<M_m<<'\t'<<M_e<<'\t'<<total_M<<'\t';
     //outfile<<wall->get_Dalpha(n_t);
     //outfile<<endl;
 

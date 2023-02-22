@@ -1,7 +1,6 @@
 // ==================================================================
 // main.cpp
 // This is my new main driver for the 1D growth & remodeling simulation
-//
 // Author: Ju Liu
 // Date: June 3rd 2016
 // ==================================================================

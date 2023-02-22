@@ -12,10 +12,8 @@ class Model_wall
     Model_wall( const double &in_pi, const double &in_deltaP,
         const double &in_deltaQ, const int &in_num_t,
         const int &in_num_DL, const double &in_dt,
-        const double &in_K_c1, const double &in_K_c2,
-        const double &in_K_m1, const double &in_K_m2,
-        const double &in_G_ch, const double &in_G_mh,
-        const double &in_G_et, const double &in_G_ez );
+        const double * in_K, const double * in_G, const double * in_C);  
+     
 
     virtual ~Model_wall();
 

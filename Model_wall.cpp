@@ -3,25 +3,23 @@
 Model_wall::Model_wall( const double &in_pi, const double &in_deltaP,
     const double &in_deltaQ, const int &in_num_t,
     const int &in_num_DL, const double &in_dt,
-    const double &in_K_c1, const double &in_K_c2,
-    const double &in_K_m1, const double &in_K_m2,
-    const double &in_G_ch, const double &in_G_mh,
-    const double &in_G_et, const double &in_G_ez )
+    const double * in_K, const double * in_G, 
+    const double * in_C ) 
 : pi(in_pi), rho_s(1.050), sigma_h(100.0 * 1000.0 * 10.0),
   a_M(0.142), tau_wh(50.6), mu(0.037), P_h(93.0*1333.2237),
   Q_h(tau_wh * in_pi * a_M * a_M * a_M / (4.0 * mu)),
   h_h(P_h * a_M / sigma_h), delta_P(in_deltaP),
   delta_Q(in_deltaQ), 
-  K_c1(in_K_c1), K_c2(in_K_c2), K_m1(in_K_m1), K_m2(in_K_m2),
-  G_ch(in_G_ch), G_mh(in_G_mh), G_et(in_G_et), G_ez(in_G_ez),
+  K_c1(in_K[0]), K_c2(in_K[1]), K_m1(in_K[2]), K_m2(in_K[3]),
+  G_ch(in_G[0]), G_mh(in_G[1]), G_et(in_G[2]), G_ez(in_K[3]),
   phi_c(0.22), phi_e(0.02), phi_m(1.0 - phi_c - phi_e),
   M_h(h_h * rho_s), M_mh(phi_m * M_h), M_eh(phi_e * M_h),
   sigma_ch(sigma_h), sigma_mh(sigma_h), 
   sigma_eh( (sigma_h - phi_c * sigma_ch - phi_m * sigma_mh) / phi_e ),
   Lambda_M(1.1), Lambda_0(0.4), C_basal(0.68), ratio_C(20.0),
   T_S0(ratio_C * C_basal), T_M(150.0 * 1000.0 * 10.0),
-  y_Lkn(3.0), y_Lmn(3.0),
-  kq_m(0.04953), kq_c(0.34687),
+  y_Lkn(3.0), y_Lmn(3.0), kq_m(0.04953), kq_c(0.34687),
+  c_m3(in_C[0]), c_c3(in_C[1]),
   num_t(in_num_t), num_DL(in_num_DL) 
 {
   c_frac[0] = 0.1;
@@ -44,9 +42,6 @@ Model_wall::Model_wall( const double &in_pi, const double &in_deltaP,
   if(sigma_act_h < 0.0) sigma_act_h = 0.0;
 
   c_e = sigma_eh / (G_et*G_et - 1.0/(G_et*G_et*G_ez*G_ez));
-
-  c_m3 = 3.5;
-  c_c3 = 22.0;
   
   c_m2 = (sigma_mh - sigma_act_h) / (G_mh*G_mh*(G_mh*G_mh - 1.0)
       * exp(c_m3 * pow((G_mh * G_mh - 1.0), 2.0)));
@@ -147,7 +142,7 @@ void Model_wall::print_solid_properties() const
   cout<<" -- homeostatic circumferential stress : "<<sigma_h<<" \n";
   cout<<" -- mass production parameters: \n";
   cout<<"     K_c1 = "<<K_c1<<'\t';
-  cout<<"     K_c2 = "<<K_c2<<'n';
+  cout<<"     K_c2 = "<<K_c2<<'\t';
   cout<<"     K_m1 = "<<K_m1<<'\t';
   cout<<"     K_m2 = "<<K_m2<<'\n';
   cout<<" -- Deposition stretches : \n";

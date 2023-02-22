@@ -10,32 +10,35 @@
 #include "Model_wall.hpp"
 #include "Time_solver.hpp"
 
-double test(const double &K_c1, const double &K_c2, const double &K_m1, const double &K_m2,
-    const double &G_ch, const double &G_mh, const double &G_et, const double &G_ez);
+void test(const double * P_k, const double * P_G, const double * P_c);
 
 int main()
-{
-  double K_c1 = 1.0;
-  double K_c2 = 1.0;
-  double K_m1 = 1.0;
-  double K_m2 = 1.0;
-  double G_ch = 1.07;
-  double G_mh = 1.25;
-  double G_et = 1.5;
-  double G_ez = 1.5;
-  test(K_c1, K_c2, K_m1, K_m2, G_ch, G_mh, G_et, G_ez);
+{ 
+  double * P_k = new double[4];
+  P_k[0] = 1.0; // K_c1
+  P_k[1] = 1.0; // K_c2
+  P_k[2] = 1.0; // K_m1
+  P_k[3] = 1.0; // K_m2
+  double * P_G = new double[4];
+  P_G[0] = 1.07; // G_ch
+  P_G[1] = 1.11; // G_mh
+  P_G[2] = 1.5;  // G_et
+  P_G[3] = 1.5;  // G_ez
+  double * P_c = new double[2];
+  P_c[0] = 3.5; // c_m3
+  P_c[1] = 22.0; // c_c3
+  test(P_k, P_G, P_c); // print homeostatic time
 }
 
-double test(const double &K_c1, const double &K_c2, const double &K_m1, const double &K_m2,
-    const double &G_ch, const double &G_mh, const double &G_et, const double &G_ez )
+void test(const double * P_k, const double * P_G, const double * P_c )
 {
   const double pi = atan(1) * 4;
 
   // ----------- Time Solver ---------------
-  const int steps_pday = 10;
-  const int lifespan = 5000;
-  const int simlength = 1000;
-  const int ref_days = 300; 
+  const int steps_pday = 20;
+  const int lifespan = 1000;
+  const int simlength = 500;
+  const int ref_days = 0; 
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
   tsolver->print_timeinfo();
@@ -45,7 +48,7 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   const double dP = 1.0;
   const double dQ = 1.3;
   Model_wall * wall = new Model_wall(pi, dP, dQ, tsolver->get_num_t(),
-      tsolver->get_num_DL(), tsolver->get_dt(), K_c1, K_c2, K_m1, K_m2, G_ch, G_mh, G_et, G_ez);
+      tsolver->get_num_DL(), tsolver->get_dt(), P_k, P_G, P_c);
 
   wall->print_fluid_properties();
 
@@ -308,52 +311,17 @@ double test(const double &K_c1, const double &K_c2, const double &K_m1, const do
   }
 
   //outfile.close();
-  double new_a_h = radius_t[tsolver->get_num_t()-1];
-  double new_h_h = h_h[tsolver->get_num_t()-1];
-  double new_tau_w = tau_w[tsolver->get_num_t()-1];
-  double new_M = total_M[tsolver->get_num_t()-1];
-  const double tol_a_t = abs(radius_t[ref_days*steps_pday-1] - radius_t[0]) / radius_t[0];
-  const double tol_h = abs(h_h[ref_days*steps_pday-1] - h_h[0]) / h_h[0];
-  const double tol_M = abs(total_M[ref_days*steps_pday-1] - total_M[0]) / total_M[0];
-  const double tol_tau_w = abs(tau_w[ref_days*steps_pday-1] - tau_w[0]) / tau_w[0];
 
+  const double tol_a_t = 4.36175e-8;
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   {
     double t = n_t * tsolver->get_dt();
-    if( (abs(radius_t[n_t] / new_a_h - 1.0) <= tol_a_t) && t > ref_days)
+    if( (abs(radius_t[n_t] / radius_t[tsolver->get_num_t()-1] - 1.0) <= tol_a_t) && t > ref_days)
     {
-      cout << "Time reaching homeostatic inner radius is " << t << endl; 
+      cout << "Time reaching homeostasis in evaluating inner radius is " << t << endl; 
       break;
     }
   }
-  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
-  {
-    double t = n_t * tsolver->get_dt();
-    if( (abs(h_h[n_t] / new_h_h - 1.0) <= tol_h) && t > ref_days)
-    {
-      cout << "Time reaching homeostatic thickness is " << t << endl;
-      break;
-    }
-  }
-  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
-  {
-    double t = n_t * tsolver->get_dt(); 
-    if( (abs(tau_w[n_t] / new_tau_w - 1.0) <= tol_tau_w) && t > ref_days)
-    {
-      cout << "Time reaching homeostatic WSS is " << t << endl; 
-      break;
-    }
-  }
-  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
-  {
-    double t = n_t * tsolver->get_dt();
-    if( (abs(total_M[n_t] / new_M - 1.0) <= tol_M) && t > ref_days)
-    {
-      cout << "Time reaching homeostatic total mass is " << t << endl;
-      break;
-    }
-  }
-
   delete wall; delete tsolver;
 }
 // EOF

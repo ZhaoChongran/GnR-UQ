@@ -11,7 +11,7 @@ find_package(OpenMP REQUIRED)
 # Set compiler flags
 set(CMAKE_CXX_FLAGS "-g -Wall -O3 ${OpenMP_CXX_FLAGS}")
 
-set(files
+set(SOURCES
   ./Model_wall.hpp 
   ./Model_wall.cpp 
   ./Sys_Tools.hpp 
@@ -22,7 +22,7 @@ set(files
 
 include_directories(.)
 
-add_library(gnr1d_lib ${files})
+add_library(gnr1d_lib ${SOURCES})
 
 add_executable(gnr1d main.cpp)
 

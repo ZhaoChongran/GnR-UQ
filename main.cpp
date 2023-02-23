@@ -5,7 +5,7 @@
 // Date: June 3rd 2016
 // ==================================================================
 #include <fstream>
-
+#include <chrono>
 #include "Model_wall.hpp"
 #include "Time_solver.hpp"
 
@@ -13,9 +13,11 @@ void test(const double * P_k, const double * P_G, const double * P_c, const int 
 
 int main()
 {
-  int num_sin = 10;
-  #pragma omp parallel for
-  for (int ii = 1; ii < num_sin; ii++)
+  int num_sim = 10;
+  std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now(); // Start timer
+  int num_threads = 10; // Set the number of threads
+  #pragma omp parallel for num_threads(num_threads)
+  for (int ii = 1; ii < num_sim; ii++)
   {
     double * P_k = new double[4];
     P_k[0] = 1.0 + double(ii) / 200.0; // K_c1
@@ -35,6 +37,10 @@ int main()
     delete[] P_G;
     delete[] P_c;
   }
+  std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now(); // End timer
+  std::chrono::duration<double> elapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time); // Calculate elapsed time
+  std::cout << "Elapsed time: " << elapsed_time.count() << " seconds." << std::endl; // Output elapsed time
+  return 0;
 }
 
 void test(const double * P_k, const double * P_G, const double * P_c, const int &counter )

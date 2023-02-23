@@ -9,38 +9,46 @@
 #include "Model_wall.hpp"
 #include "Time_solver.hpp"
 
-void test(const double * P_k, const double * P_G, const double * P_c);
+void test(const double * P_k, const double * P_G, const double * P_c, const int &counter );
 
 int main()
-{ 
-  double * P_k = new double[4];
-  P_k[0] = 1.0; // K_c1
-  P_k[1] = 1.0; // K_c2
-  P_k[2] = 1.0; // K_m1
-  P_k[3] = 1.0; // K_m2
-  double * P_G = new double[4];
-  P_G[0] = 1.07; // G_ch
-  P_G[1] = 1.11; // G_mh
-  P_G[2] = 1.5;  // G_et
-  P_G[3] = 1.5;  // G_ez
-  double * P_c = new double[2];
-  P_c[0] = 3.5; // c_m3
-  P_c[1] = 22.0; // c_c3
-  test(P_k, P_G, P_c); // print homeostatic time
+{
+  int num_sin = 10;
+  #pragma omp parallel for
+  for (int ii = 1; ii < num_sin; ii++)
+  {
+    double * P_k = new double[4];
+    P_k[0] = 1.0 + double(ii) / 200.0; // K_c1
+    P_k[1] = 1.0 + double(ii) / 200.0; // K_c2
+    P_k[2] = 1.0 + double(ii) / 200.0; // K_m1
+    P_k[3] = 1.0 + double(ii) / 200.0; // K_m2
+    double * P_G = new double[4];
+    P_G[0] = 1.0 + double(ii) / 200.0; // G_ch
+    P_G[1] = 1.0 + double(ii) / 150.0; // G_mh
+    P_G[2] = 1.0 + double(ii) / 125.0;  // G_et
+    P_G[3] = 1.5 + double(ii) / 125.0;  // G_ez
+    double * P_c = new double[2];
+    P_c[0] = 3.5; // c_m3
+    P_c[1] = 22.0; // c_c3 
+    test(P_k, P_G, P_c, ii); // print homeostatic time
+    delete[] P_k;
+    delete[] P_G;
+    delete[] P_c;
+  }
 }
 
-void test(const double * P_k, const double * P_G, const double * P_c )
+void test(const double * P_k, const double * P_G, const double * P_c, const int &counter )
 {
   const double pi = atan(1) * 4;
 
   // ----------- Time Solver ---------------
-  const int steps_pday = 20;
+  const int steps_pday = 10;
   const int lifespan = 1000;
-  const int simlength = 500;
+  const int simlength = 300;
   const int ref_days = 0; 
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
-  tsolver->print_timeinfo();
+  // tsolver->print_timeinfo();
   // ---------------------------------------
 
   // ----------- Wall Object ---------------
@@ -49,16 +57,16 @@ void test(const double * P_k, const double * P_G, const double * P_c )
   Model_wall * wall = new Model_wall(pi, dP, dQ, tsolver->get_num_t(),
       tsolver->get_num_DL(), tsolver->get_dt(), P_k, P_G, P_c);
 
-  wall->print_fluid_properties();
+  // wall->print_fluid_properties();
 
-  wall->print_solid_properties();
+  // wall->print_solid_properties();
 
-  wall->check_initial_parameters();
+  // wall->check_initial_parameters();
 
   const double alpha_ckh[4] = {0.0, 0.5*pi, 0.25*pi, 0.75*pi};
-  wall->check_initial_angle(alpha_ckh);
+  // wall->check_initial_angle(alpha_ckh);
 
-  wall->check_initial_stress();
+  // wall->check_initial_stress();
   // ---------------------------------------
 
 
@@ -111,7 +119,7 @@ void test(const double * P_k, const double * P_G, const double * P_c )
   for( int n_t = 1; n_t < tsolver->get_num_t(); ++n_t )
   {
     double t = n_t * tsolver->get_dt();
-   
+
     double P = wall->get_P(t,ref_days); 
     double Q = wall->get_Q(t,ref_days);
 
@@ -314,6 +322,7 @@ void test(const double * P_k, const double * P_G, const double * P_c )
     double t = n_t * tsolver->get_dt();
     if( (abs(radius_t[n_t] / radius_t[tsolver->get_num_t()-1] - 1.0) <= tol_a_t) && t > ref_days)
     {
+      cout << "Counter = " << counter << '\t'; 
       cout << "Time reaching homeostasis in evaluating inner radius is " << t << endl; 
       break;
     }

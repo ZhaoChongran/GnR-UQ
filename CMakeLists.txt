@@ -1,28 +1,29 @@
-PROJECT(gnr1d_cpp)
+cmake_minimum_required(VERSION 3.0)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+project(gnr1d)
 
-IF(COMMAND cmake_policy)
-  cmake_policy(SET CMP0003 NEW)
-ENDIF(COMMAND cmake_policy)
+set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_CXX_STANDARD 11)
 
-SET( CMAKE_CXX_COMPILER "g++")
+# Look for OpenMP package
+find_package(OpenMP REQUIRED)
 
-SET( CMAKE_CXX_FLAGS "-g -Wall -O3")
+# Set compiler flags
+set(CMAKE_CXX_FLAGS "-g -Wall -O3 ${OpenMP_CXX_FLAGS}")
 
-SET( file ./Model_wall.cpp 
-  ./Time_solver.cpp ./Sys_Tools.cpp )
+set(files
+  ./Model_wall.hpp 
+  ./Model_wall.cpp 
+  ./Sys_Tools.hpp 
+  ./Sys_Tools.cpp 
+  ./Time_solver.hpp 
+  ./Time_solver.cpp
+)
 
-INCLUDE_DIRECTORIES(.)
+include_directories(.)
 
-ADD_LIBRARY( mat ${file} )
+add_library(gnr1d_lib ${files})
 
-ADD_EXECUTABLE( gnr1d main.cpp )
+add_executable(gnr1d main.cpp)
 
-#ADD_EXECUTABLE( test test.cpp )
-
-TARGET_LINK_LIBRARIES( gnr1d mat )
-
-#TARGET_LINK_LIBRARIES( test mat )
-
-# EOF
+target_link_libraries(gnr1d gnr1d_lib ${OpenMP_CXX_LIBRARIES})

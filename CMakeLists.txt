@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 11)
 find_package(OpenMP REQUIRED)
 
 # Set compiler flags
-set(CMAKE_CXX_FLAGS "-g -Wall -O3 ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-g -Wall -O3 ${OpenMP_CXX_FLAGS} -pg")
 
 set(SOURCES
   ./Model_wall.hpp 
@@ -27,3 +27,5 @@ add_library(gnr1d_lib ${SOURCES})
 add_executable(gnr1d main.cpp)
 
 target_link_libraries(gnr1d gnr1d_lib ${OpenMP_CXX_LIBRARIES})
+
+set_target_properties(gnr1d PROPERTIES LINK_FLAGS "-pg")

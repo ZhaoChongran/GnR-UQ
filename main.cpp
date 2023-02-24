@@ -283,7 +283,7 @@ void test(const double * P_k, const double * P_G, const double * P_c )
 
     wall->set_Dalpha(n_t, L_t, L_z);
 
-    // double M_e = wall->get_M_eh();
+    double M_e = wall->get_M_eh();
     // total_M = M_c + M_e + M_m;
     // h_h = total_M / (wall->get_rho_s() * L_t * L_z);
     // tau_w = 4.0 * wall->get_mu() * Q / (pi*a_t*a_t*a_t);
@@ -299,7 +299,11 @@ void test(const double * P_k, const double * P_G, const double * P_c )
       wall->update_DQ2_c(ii, L_t, L_z, tsolver->get_dt());
       wall->update_DQ2_m(ii, L_t, L_z, tsolver->get_dt());
     }
-    //cout<<"Time t= "<<t<<'\t';
+    cout << "Time t= " << t << '\t';
+    cout << "M_e = " << M_e << '\t';
+    cout << "M_m = " << M_m << '\t';
+    cout << "M_c = " << M_c << '\t';
+    cout << "a_t = " << a_t << endl;
     //cout<<"num_it1 = "<<num_it1<<'\t'<<"tol_a = "<<tol_a<<'\t';
     //cout<<"L_t = "<<L_t<<'\t'<<"h_h = "<<h_h<<'\t';
     //cout<<"total_M = "<<total_M<<'\t';

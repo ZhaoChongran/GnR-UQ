@@ -9,15 +9,15 @@
 #include "Model_wall.hpp"
 #include "Time_solver.hpp"
 
-void test(const double * P_k, const double * P_G, const double * P_c);
+double test(const double * P_k, const double * P_G, const double * P_c);
 
 int main()
 { 
   double * P_k = new double[4];
-  P_k[0] = 1.0; // K_c1
-  P_k[1] = 1.0; // K_c2
-  P_k[2] = 1.0; // K_m1
-  P_k[3] = 1.0; // K_m2
+  P_k[0] = 0.9; // K_c1
+  P_k[1] = 0.9; // K_c2
+  P_k[2] = 0.9; // K_m1
+  P_k[3] = 0.9; // K_m2
   double * P_G = new double[4];
   P_G[0] = 1.07; // G_ch
   P_G[1] = 1.11; // G_mh
@@ -26,10 +26,11 @@ int main()
   double * P_c = new double[2];
   P_c[0] = 3.5; // c_m3
   P_c[1] = 22.0; // c_c3
-  test(P_k, P_G, P_c); // print homeostatic time
+  double op=test(P_k, P_G, P_c); // print homeostatic time
+  cout<<"time= "<<op<<endl;
 }
 
-void test(const double * P_k, const double * P_G, const double * P_c )
+double test(const double * P_k, const double * P_G, const double * P_c )
 {
   const double pi = atan(1) * 4;
 
@@ -307,17 +308,19 @@ void test(const double * P_k, const double * P_G, const double * P_c )
   }
 
   //outfile.close();
-
+  double th=0;
   const double tol_a_t = 4.36175e-8;
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
   {
     double t = n_t * tsolver->get_dt();
     if( (abs(radius_t[n_t] / radius_t[tsolver->get_num_t()-1] - 1.0) <= tol_a_t) && t > ref_days)
     {
-      cout << "Time reaching homeostasis in evaluating inner radius is " << t << endl; 
+      cout << "Time reaching homeostasis in evaluating inner radius is " << t << endl;
+      th=t; 
       break;
     }
   }
+  return th;
   delete wall; delete tsolver;
 }
 // EOF

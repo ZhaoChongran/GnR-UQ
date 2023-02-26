@@ -5,7 +5,7 @@
 // Date: June 3rd 2016
 // ==================================================================
 #include <fstream>
-#include <chrono>
+#include <iostream>
 #include "Model_wall.hpp"
 #include "Time_solver.hpp"
 
@@ -13,11 +13,10 @@ void test(const double * P_k, const double * P_G, const double * P_c, const int 
 
 int main()
 {
-  int num_sim = 10;
-  std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now(); // Start timer
-  int num_threads = 10; // Set the number of threads
+  int num_sim = 1;
+  int num_threads = 1; // Set the number of threads
   #pragma omp parallel for num_threads(num_threads)
-  for (int ii = 1; ii < num_sim; ii++)
+  for (int ii = 0; ii < num_sim; ii++)
   {
     double * P_k = new double[4];
     P_k[0] = 1.0 + double(ii) / 200.0; // K_c1
@@ -25,9 +24,9 @@ int main()
     P_k[2] = 1.0 + double(ii) / 200.0; // K_m1
     P_k[3] = 1.0 + double(ii) / 200.0; // K_m2
     double * P_G = new double[4];
-    P_G[0] = 1.0 + double(ii) / 200.0; // G_ch
-    P_G[1] = 1.0 + double(ii) / 150.0; // G_mh
-    P_G[2] = 1.0 + double(ii) / 125.0;  // G_et
+    P_G[0] = 1.1 + double(ii) / 200.0; // G_ch
+    P_G[1] = 1.1 + double(ii) / 150.0; // G_mh
+    P_G[2] = 1.5 + double(ii) / 125.0;  // G_et
     P_G[3] = 1.5 + double(ii) / 125.0;  // G_ez
     double * P_c = new double[2];
     P_c[0] = 3.5; // c_m3
@@ -36,10 +35,7 @@ int main()
     delete[] P_k;
     delete[] P_G;
     delete[] P_c;
-  }
-  std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now(); // End timer
-  std::chrono::duration<double> elapsed_time = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time); // Calculate elapsed time
-  std::cout << "Elapsed time: " << elapsed_time.count() << " seconds." << std::endl; // Output elapsed time
+  } 
   return 0;
 }
 
@@ -50,11 +46,11 @@ void test(const double * P_k, const double * P_G, const double * P_c, const int 
   // ----------- Time Solver ---------------
   const int steps_pday = 10;
   const int lifespan = 1000;
-  const int simlength = 300;
-  const int ref_days = 0; 
+  const int simlength = 20;
+  const int ref_days = 20; 
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
-  // tsolver->print_timeinfo();
+  tsolver->print_timeinfo();
   // ---------------------------------------
 
   // ----------- Wall Object ---------------
@@ -63,21 +59,21 @@ void test(const double * P_k, const double * P_G, const double * P_c, const int 
   Model_wall * wall = new Model_wall(pi, dP, dQ, tsolver->get_num_t(),
       tsolver->get_num_DL(), tsolver->get_dt(), P_k, P_G, P_c);
 
-  // wall->print_fluid_properties();
+  wall->print_fluid_properties();
 
-  // wall->print_solid_properties();
+  wall->print_solid_properties();
 
-  // wall->check_initial_parameters();
+  wall->check_initial_parameters();
 
   const double alpha_ckh[4] = {0.0, 0.5*pi, 0.25*pi, 0.75*pi};
-  // wall->check_initial_angle(alpha_ckh);
+  wall->check_initial_angle(alpha_ckh);
 
-  // wall->check_initial_stress();
+  wall->check_initial_stress();
   // ---------------------------------------
 
 
   // ------------ Nonlinear Solver ---------
-  const double Max_error_a = 2.0e-9, Max_error_m = 1.0e-9;
+  const double Max_error_a = 2.0e-12, Max_error_m = 1.0e-12;
   const int Max_it = 90;
   int num_it1 = 0, num_it2 = 0; 
   double beta = 0.3, tol_a = 100.0, tol_m = 100.0; 
@@ -105,21 +101,21 @@ void test(const double * P_k, const double * P_G, const double * P_c, const int 
   double Lm_n;
   double C_t, dC_t, T_act, dT_act;
   double Fa, dFa_da;
-  // double h_h;
-  // double total_M;
+  double h_h;
+  double total_M;
   // double tau_w;
   double radius_t[tsolver->get_num_t()];
   radius_t[0] = 0.142;
   // --------------------------------------
 
   // ----- Prepare file for recording -----
-  //ofstream outfile( "results", ofstream::out | ofstream::trunc );
+  ofstream outfile( "results", ofstream::out | ofstream::trunc );
 
-  //if(!outfile)
-  //{
-  //cerr<<"Error: unable to open file to record results. \n";
-  //exit(EXIT_FAILURE);
-  //}
+  if(!outfile)
+  {
+  cerr<<"Error: unable to open file to record results. \n";
+  exit(EXIT_FAILURE);
+  }
 
   // --------------------------------------
   for( int n_t = 1; n_t < tsolver->get_num_t(); ++n_t )
@@ -142,6 +138,7 @@ void test(const double * P_k, const double * P_G, const double * P_c, const int 
 
     tn0 = SYS_T::get_tn0(n_t, tsolver->get_num_DL()); 
 
+    outfile<<t<<'\t';
     //outfile<<t<<'\t'<<P<<'\t'<<Q<<'\t';
 
     while( (tol_m > Max_error_m) && (num_it1 < Max_it) )
@@ -297,15 +294,16 @@ void test(const double * P_k, const double * P_G, const double * P_c, const int 
 
     wall->set_Dalpha(n_t, L_t, L_z);
 
-    // double M_e = wall->get_M_eh();
-    // total_M = M_c + M_e + M_m;
-    // h_h = total_M / (wall->get_rho_s() * L_t * L_z);
+    double M_e = wall->get_M_eh();
+    total_M = M_c + M_e + M_m;
+    h_h = total_M / (wall->get_rho_s() * L_t * L_z);
     // tau_w = 4.0 * wall->get_mu() * Q / (pi*a_t*a_t*a_t);
     radius_t[n_t] = a_t;
 
-    //outfile<<a_t<<'\t'<<h_h<<'\t'<<M_c<<'\t'<<M_m<<'\t'<<M_e<<'\t'<<total_M<<'\t';
+    outfile<<std::fixed<<std::setprecision(4);
+    outfile<<a_t<<'\t'<<h_h<<'\t'<<M_c<<'\t'<<M_m<<'\t'<<M_e<<'\t'<<total_M<<'\t';
     //outfile<<wall->get_Dalpha(n_t);
-    //outfile<<endl;
+    outfile<<endl;
 
     // update DQ2 from tn0 to the current time step 
     for(int ii=tn0; ii<=n_t; ++ii)
@@ -313,14 +311,18 @@ void test(const double * P_k, const double * P_G, const double * P_c, const int 
       wall->update_DQ2_c(ii, L_t, L_z, tsolver->get_dt());
       wall->update_DQ2_m(ii, L_t, L_z, tsolver->get_dt());
     }
-    //cout<<"Time t= "<<t<<'\t';
-    //cout<<"num_it1 = "<<num_it1<<'\t'<<"tol_a = "<<tol_a<<'\t';
-    //cout<<"L_t = "<<L_t<<'\t'<<"h_h = "<<h_h<<'\t';
-    //cout<<"total_M = "<<total_M<<'\t';
-    //cout<<endl; 
+    // cout << "Time t= " << t << '\t';
+    // cout << "M_e = " << M_e << '\t';
+    // cout << "M_m = " << M_m << '\t';
+    // cout << "M_c = " << M_c << '\t';
+    // cout << "a_t = " << a_t << endl;
+    // cout<<"num_it1 = "<<num_it1<<'\t'<<"tol_a = "<<tol_a<<'\t';
+    // cout<<"L_t = "<<L_t<<'\t'<<"h_h = "<<h_h<<'\t';
+    // cout<<"total_M = "<<total_M<<'\t';
+    // cout<<endl; 
   }
 
-  //outfile.close();
+  outfile.close();
 
   const double tol_a_t = 4.36175e-8;
   for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)

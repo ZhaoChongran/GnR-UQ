@@ -5,7 +5,6 @@
 // Date: June 3rd 2016
 // ==================================================================
 #include <fstream>
-
 #include "Model_wall.hpp"
 #include "Time_solver.hpp"
 
@@ -16,7 +15,7 @@ int main()
   double * P_k = new double[4];
   P_k[0] = 0.9; // K_c1
   P_k[1] = 0.9; // K_c2
-  P_k[2] = 0.9; // K_m1
+  P_k[2] = 0.9; // K_intP_k[3] = 0.9; 
   P_k[3] = 0.9; // K_m2
   double * P_G = new double[4];
   P_G[0] = 1.07; // G_ch
@@ -26,8 +25,8 @@ int main()
   double * P_c = new double[2];
   P_c[0] = 3.5; // c_m3
   P_c[1] = 22.0; // c_c3
-  double op=test(P_k, P_G, P_c); // print homeostatic time
-  cout<<"time= "<<op<<endl;
+  double t = test(P_k, P_G, P_c); // print homeostatic time
+  cout<<"Time reaching homeostasis is "<< t << " days" << endl;
 }
 
 double test(const double * P_k, const double * P_G, const double * P_c )
@@ -95,8 +94,16 @@ double test(const double * P_k, const double * P_G, const double * P_c )
   // double h_h;
   // double total_M;
   // double tau_w;
+  double t_homeostasis = 0.0;
   double radius_t[tsolver->get_num_t()];
-  radius_t[0] = 0.142;
+  double M_m_t[tsolver->get_num_t()];
+  double M_ck_t[tsolver->get_num_t()][4];
+  M_m_t[0] = wall->get_M_mh();
+  for( int ii = 0; ii < 4; ii++)
+  {
+    M_ck_t[0][ii] = wall->get_M_ckh(ii);
+  }
+  radius_t[0] = wall->get_a_M();
   // --------------------------------------
 
   // ----- Prepare file for recording -----
@@ -289,7 +296,11 @@ double test(const double * P_k, const double * P_G, const double * P_c )
     // h_h = total_M / (wall->get_rho_s() * L_t * L_z);
     // tau_w = 4.0 * wall->get_mu() * Q / (pi*a_t*a_t*a_t);
     radius_t[n_t] = a_t;
-
+    M_m_t[n_t] = M_m;
+    for (int ii = 0; ii < 4; ii++)
+    {
+      M_ck_t[n_t][ii] = M_ck[ii];
+    }
     //outfile<<a_t<<'\t'<<h_h<<'\t'<<M_c<<'\t'<<M_m<<'\t'<<M_e<<'\t'<<total_M<<'\t';
     //outfile<<wall->get_Dalpha(n_t);
     //outfile<<endl;
@@ -300,27 +311,26 @@ double test(const double * P_k, const double * P_G, const double * P_c )
       wall->update_DQ2_c(ii, L_t, L_z, tsolver->get_dt());
       wall->update_DQ2_m(ii, L_t, L_z, tsolver->get_dt());
     }
+    const double tol_homeostasis = 1.0e-4;
+    bool cdt1 = ( abs(radius_t[n_t]/radius_t[n_t] - 1.0) <= tol_homeostasis );
+    bool cdt2 = ( abs(M_m_t[n_t]/M_m_t[n_t-1] - 1.0) <= tol_homeostasis );
+    bool cdt3 = ( abs(M_ck_t[n_t][0]/M_ck_t[n_t-1][0] - 1.0) <= tol_homeostasis );
+    bool cdt4 = ( abs(M_ck_t[n_t][1]/M_ck_t[n_t-1][1] - 1.0) <= tol_homeostasis );
+    bool cdt5 = ( abs(M_ck_t[n_t][2]/M_ck_t[n_t-1][2] - 1.0) <= tol_homeostasis );
+    bool cdt6 = ( abs(M_ck_t[n_t][3]/M_ck_t[n_t-1][3] - 1.0) <= tol_homeostasis );
+    if ( cdt1 && cdt2 && cdt3 && cdt4 && cdt5 && cdt6 )
+    {
+      t_homeostasis = t; 
+      break;
+    }
     //cout<<"Time t= "<<t<<'\t';
     //cout<<"num_it1 = "<<num_it1<<'\t'<<"tol_a = "<<tol_a<<'\t';
     //cout<<"L_t = "<<L_t<<'\t'<<"h_h = "<<h_h<<'\t';
     //cout<<"total_M = "<<total_M<<'\t';
     //cout<<endl; 
   }
-
-  //outfile.close();
-  double th=0;
-  const double tol_a_t = 4.36175e-8;
-  for (int n_t = 1; n_t < tsolver->get_num_t(); n_t++)
-  {
-    double t = n_t * tsolver->get_dt();
-    if( (abs(radius_t[n_t] / radius_t[tsolver->get_num_t()-1] - 1.0) <= tol_a_t) && t > ref_days)
-    {
-      cout << "Time reaching homeostasis in evaluating inner radius is " << t << endl;
-      th=t; 
-      break;
-    }
-  }
-  return th;
+  return t_homeostasis;
+  //outfile.close(); 
   delete wall; delete tsolver;
 }
 // EOF

@@ -66,6 +66,8 @@ class Model_wall
     double get_M_m(const int &tstep) const {return M_mh * DQ_m[tstep] * DQ2_m[0];}
     
     double get_M_eh() const {return M_eh;}
+    double get_M_mh() const {return M_mh;}
+    double get_M_ckh(const int &ii) const {return M_ckh[ii];}
     double get_rho_s() const {return rho_s;}
 
     double get_Dalpha(const int &ii) const {return Dalpha[ii];}

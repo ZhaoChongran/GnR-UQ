@@ -18,7 +18,7 @@ Model_wall::Model_wall( const double &in_pi, const double &in_deltaP,
   sigma_eh( (sigma_h - phi_c * sigma_ch - phi_m * sigma_mh) / phi_e ),
   Lambda_M(1.1), Lambda_0(0.4), C_basal(0.68), ratio_C(20.0),
   T_S0(ratio_C * C_basal), T_M(150.0 * 1000.0 * 10.0),
-  y_Lkn(3.0), y_Lmn(3.0), kq_m(0.04953), kq_c(0.34687),
+  y_Lkn(3.0), y_Lmn(3.0), kq_m(0.0125), kq_c(0.0125),
   c_m3(in_C[0]), c_c3(in_C[1]),
   num_t(in_num_t), num_DL(in_num_DL) 
 {

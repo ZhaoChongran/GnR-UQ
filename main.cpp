@@ -311,7 +311,7 @@ double test(const double * P_k, const double * P_G, const double * P_c )
       wall->update_DQ2_c(ii, L_t, L_z, tsolver->get_dt());
       wall->update_DQ2_m(ii, L_t, L_z, tsolver->get_dt());
     }
-    const double tol_homeostasis = 1.0e-4;
+    const double tol_homeostasis = 1.0e-5;
     bool cdt1 = ( abs(radius_t[n_t]/radius_t[n_t] - 1.0) <= tol_homeostasis );
     bool cdt2 = ( abs(M_m_t[n_t]/M_m_t[n_t-1] - 1.0) <= tol_homeostasis );
     bool cdt3 = ( abs(M_ck_t[n_t][0]/M_ck_t[n_t-1][0] - 1.0) <= tol_homeostasis );

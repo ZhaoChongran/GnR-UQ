@@ -1,15 +1,13 @@
 // ==================================================================
-// main.cpp
-// This is my new main driver for the 1D growth & remodeling simulation
-// Author: Ju Liu
-// Date: June 3rd 2016
+// Use OpenMP to test Uncertain Qualification
+// Date: 11st March 2023
 // ==================================================================
 #include <fstream>
+#include <chrono>
 #include "Model_wall.hpp"
 #include "Time_solver.hpp"
 #include <random>
 #include <ctime>
-
 
 double test(const double * P_k, const double * P_G, const double * P_c);
 
@@ -17,71 +15,71 @@ int main()
 { 
   uniform_real_distribution<double> c_m3(3.3, 3.7);
   uniform_real_distribution<double> c_c3(20.8, 23.2);
-  default_random_engine e(time(NULL));
-  int p=0;
-  int n=10000;
-  double m=0;
-  double m1=0;
-  double v=0;
-  double v1=0;
-  double num[n];
-  ofstream MCmean;
-  MCmean.open ("meandata-c.txt");
-  for (int i = 0; i < n; i++)
+  default_random_engine e(time(NULL)); 
+  int num_sim = 10;
+  double * mean_value = new double[num_sim];
+
+  int num_threads = 8; // Set the number of threads
+  #pragma omp parallel for num_threads(num_threads)
+  for (int ii = 0; ii < num_sim; ii++)
   {
-  double * P_k = new double[4];
-  P_k[0] = 2.2; // K_c1
-  P_k[1] = 2.0; // K_c2
-  P_k[2] = 2.15; // K_intP_k[3] = 0.9; 
-  P_k[3] = 2.0; // K_m2
-  double * P_G = new double[4];
-  P_G[0] = 1.07; // G_ch
-  P_G[1] = 1.25; // G_mh
-  P_G[2] = 1.4;  // G_et
-  P_G[3] = 1.4;  // G_ez
-  double * P_c = new double[2];
-  P_c[0] = c_m3(e); // c_m3
-  P_c[1] = c_c3(e); // c_c3
-  
-  double t = test(P_k, P_G, P_c); // print homeostatic time
-  p+=1;
-  cout<<p<<endl;
-  num[i]=t;
-  m1+=t;
-  m=m1/(i+1);
-  MCmean<<m<<endl;
+    double * P_k = new double[4];
+    P_k[0] = 1.0; // K_c1
+    P_k[1] = 1.0; // K_c2
+    P_k[2] = 1.0; // K_intP_k[3] = 0.9; 
+    P_k[3] = 1.0; // K_m2
+    double * P_G = new double[4];
+    P_G[0] = 1.08; // G_ch
+    P_G[1] = 1.20; // G_mh
+    P_G[2] = 1.4;  // G_et
+    P_G[3] = 1.4;  // G_ez
+    double * P_c = new double[2];
+    P_c[0] = c_m3(e); // c_m3
+    P_c[1] = c_c3(e); // c_c3
+
+    mean_value[ii] = test(P_k, P_G, P_c); // print homeostatic time  
+    cout << "This is No." << ii+1 << " simulation." << '\t';
+    cout << "c_m3 = " << P_c[0] << '\t';
+    cout << "c_c3 = " << P_c[1] << '\t';
+    cout << "Mean-time is " << mean_value[ii] << " days" << endl; 
+    delete[] P_k;
+    delete[] P_G;
+    delete[] P_c;
   }
-  
-  ofstream MCvar;
-  MCvar.open ("vardata-c.txt");
-  for (int i = 0; i < n; i++)
+
+  ofstream MC_mean;
+  MC_mean.open ("mean-data.txt"); 
+  double sum_time = 0.0;
+  for (int ii = 0; ii < num_sim; ii++)
   {
-    v1+=pow(num[i]-m,2);
-    v=v1/(i+1);
-    MCvar<<v<<endl;
+    sum_time += mean_value[ii];
+    MC_mean << sum_time/double(ii+1) << endl;
   }   
-  MCvar.close();
-  
-  
-  
-  cout<<"The mean is "<< m << " days" << endl;
-  cout<<"The variance is "<< v << " days" <<endl;
+  MC_mean.close();
+
+  ofstream MC_var;
+  MC_var.open ("var-data.txt");
+  double var = 0.0;
+  for (int ii = 0; ii < num_sim; ii++)
+  {
+    var += pow( mean_value[ii] - (sum_time/double(num_sim)), 2);
+    MC_var << var / double(ii+1) << endl;
+  }
+  MC_var.close();
 }
-
-
 
 double test(const double * P_k, const double * P_G, const double * P_c )
 {
   const double pi = atan(1) * 4;
 
   // ----------- Time Solver ---------------
-  const int steps_pday = 20;
+  const int steps_pday = 10;
   const int lifespan = 1000;
   const int simlength = 1000;
   const int ref_days = 0; 
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
-  tsolver->print_timeinfo();
+  // tsolver->print_timeinfo();
   // ---------------------------------------
 
   // ----------- Wall Object ---------------
@@ -90,16 +88,16 @@ double test(const double * P_k, const double * P_G, const double * P_c )
   Model_wall * wall = new Model_wall(pi, dP, dQ, tsolver->get_num_t(),
       tsolver->get_num_DL(), tsolver->get_dt(), P_k, P_G, P_c);
 
-  wall->print_fluid_properties();
+  // wall->print_fluid_properties();
 
-  wall->print_solid_properties();
+  // wall->print_solid_properties();
 
-  wall->check_initial_parameters();
+  // wall->check_initial_parameters();
 
   const double alpha_ckh[4] = {0.0, 0.5*pi, 0.25*pi, 0.75*pi};
-  wall->check_initial_angle(alpha_ckh);
+  // wall->check_initial_angle(alpha_ckh);
 
-  wall->check_initial_stress();
+  // wall->check_initial_stress();
   // ---------------------------------------
 
 
@@ -160,7 +158,7 @@ double test(const double * P_k, const double * P_G, const double * P_c )
   for( int n_t = 1; n_t < tsolver->get_num_t(); ++n_t )
   {
     double t = n_t * tsolver->get_dt();
-   
+
     double P = wall->get_P(t,ref_days); 
     double Q = wall->get_Q(t,ref_days);
 

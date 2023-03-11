@@ -7,27 +7,68 @@
 #include <fstream>
 #include "Model_wall.hpp"
 #include "Time_solver.hpp"
+#include <random>
+#include <ctime>
+
 
 double test(const double * P_k, const double * P_G, const double * P_c);
 
 int main()
 { 
+  uniform_real_distribution<double> c_m3(3.3, 3.7);
+  uniform_real_distribution<double> c_c3(20.8, 23.2);
+  default_random_engine e(time(NULL));
+  int p=0;
+  int n=10000;
+  double m=0;
+  double m1=0;
+  double v=0;
+  double v1=0;
+  double num[n];
+  ofstream MCmean;
+  MCmean.open ("meandata-c.txt");
+  for (int i = 0; i < n; i++)
+  {
   double * P_k = new double[4];
-  P_k[0] = 0.9; // K_c1
-  P_k[1] = 0.9; // K_c2
-  P_k[2] = 0.9; // K_intP_k[3] = 0.9; 
-  P_k[3] = 0.9; // K_m2
+  P_k[0] = 2.2; // K_c1
+  P_k[1] = 2.0; // K_c2
+  P_k[2] = 2.15; // K_intP_k[3] = 0.9; 
+  P_k[3] = 2.0; // K_m2
   double * P_G = new double[4];
   P_G[0] = 1.07; // G_ch
-  P_G[1] = 1.11; // G_mh
-  P_G[2] = 1.5;  // G_et
-  P_G[3] = 1.5;  // G_ez
+  P_G[1] = 1.25; // G_mh
+  P_G[2] = 1.4;  // G_et
+  P_G[3] = 1.4;  // G_ez
   double * P_c = new double[2];
-  P_c[0] = 3.5; // c_m3
-  P_c[1] = 22.0; // c_c3
+  P_c[0] = c_m3(e); // c_m3
+  P_c[1] = c_c3(e); // c_c3
+  
   double t = test(P_k, P_G, P_c); // print homeostatic time
-  cout<<"Time reaching homeostasis is "<< t << " days" << endl;
+  p+=1;
+  cout<<p<<endl;
+  num[i]=t;
+  m1+=t;
+  m=m1/(i+1);
+  MCmean<<m<<endl;
+  }
+  
+  ofstream MCvar;
+  MCvar.open ("vardata-c.txt");
+  for (int i = 0; i < n; i++)
+  {
+    v1+=pow(num[i]-m,2);
+    v=v1/(i+1);
+    MCvar<<v<<endl;
+  }   
+  MCvar.close();
+  
+  
+  
+  cout<<"The mean is "<< m << " days" << endl;
+  cout<<"The variance is "<< v << " days" <<endl;
 }
+
+
 
 double test(const double * P_k, const double * P_G, const double * P_c )
 {
@@ -36,7 +77,7 @@ double test(const double * P_k, const double * P_G, const double * P_c )
   // ----------- Time Solver ---------------
   const int steps_pday = 20;
   const int lifespan = 1000;
-  const int simlength = 500;
+  const int simlength = 1000;
   const int ref_days = 0; 
   Time_solver * tsolver = new Time_solver(steps_pday, lifespan, simlength);
 
